@@ -1,0 +1,35 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# VSCode local settings
+.vscode/
+
+# Local datasets
+data/*
+!data/.gitkeep
+
+# Local models
+models/*
+!models/.gitkeep
+
+# Training outputs and checkpoints
+outputs/*
+!outputs/.gitkeep
+
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+
+# HuggingFace / cache
+.cache/
+hf_cache/
+huggingface_cache/
