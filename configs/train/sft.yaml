@@ -1,0 +1,93 @@
+task:
+  name: math_sft
+  stage: sft
+  seed: 42
+
+paths:
+  model_path: models/Qwen2.5-Math-1.5B
+  dataset_path: data/math
+  output_dir: outputs/train/sft
+  final_model_dir: outputs/train/sft/final
+
+dataset:
+  split: train
+  limit: null
+  start_index: 0
+  question_field: problem
+  solution_field: solution
+  metadata_fields:
+    - level
+    - type
+  max_length: 2048
+  add_eos_token: true
+  skip_without_boxed_answer: true
+  num_preview_samples: 16
+
+prompt:
+  system_template: |
+    # Instruction
+    You are a helpful, respectful, and honest assistant.
+    Below is a math problem from the MATH dataset.
+    Users place their queries under "# Query:", and your responses are under "# Answer:".
+
+    You should solve the math problem step by step.
+    Your response must strictly follow this format:
+
+    <think>
+    reasoning process here
+    </think> <answer>
+    final answer here
+    </answer>
+
+    Important:
+    - Put only the final result inside <answer>...</answer>.
+    - Do not include words or explanations inside <answer>...</answer>.
+    - Do not use \boxed{} inside <answer>...</answer>.
+    - If the answer is a number, fraction, expression, tuple, or interval, write only that object.
+
+  user_template: |
+    # Query:
+    {question}
+
+    # Answer:
+    <think>
+
+model:
+  torch_dtype: bfloat16
+  attn_implementation: sdpa
+  trust_remote_code: true
+  device_map: null
+  gradient_checkpointing: true
+
+training:
+  num_train_epochs: 1
+  train_batch_size: 8
+  gradient_accumulation_steps: 4
+  learning_rate: 1.0e-5
+  weight_decay: 0.0
+  betas:
+    - 0.9
+    - 0.95
+  eps: 1.0e-8
+  max_grad_norm: 1.0
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  num_workers: 2
+  pin_memory: true
+  log_every: 10
+  save_final_model: true
+
+wandb:
+  enabled: true
+  env_file: .env
+  run_name: sft
+  tags:
+    - sft
+    - math
+    - qwen2.5
+  log_examples_every: 100
+
+plots:
+  enabled: true
+  dpi: 300
+  style: seaborn-v0_8-whitegrid
