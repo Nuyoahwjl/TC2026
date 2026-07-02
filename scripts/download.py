@@ -28,7 +28,7 @@ def save_math(force: bool = False):
     Download EleutherAI/hendrycks_math and merge all configs into one DatasetDict.
 
     Saved path:
-        data/hendrycks_math
+        data/math
     """
     save_path = DATA_DIR / "math"
 
