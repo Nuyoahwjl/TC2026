@@ -1,16 +1,16 @@
 task:
-  name: math_sft
+  name: math_eval
   stage: sft
   seed: 42
 
 paths:
-  model_path: models/Qwen2.5-Math-1.5B
+  model_path: outputs/train/sft/model
+  model_tag: sft
   dataset_path: data/math
-  output_dir: outputs/train/sft
-  final_model_dir: outputs/train/sft/model
+  output_dir: outputs/eval
 
 dataset:
-  split: train
+  split: test
   limit: null
   start_index: 0
   question_field: problem
@@ -18,10 +18,6 @@ dataset:
   metadata_fields:
     - level
     - type
-  max_length: 2048
-  add_eos_token: true
-  skip_without_boxed_answer: true
-  num_preview_samples: 16
 
 prompt:
   system_template: |
@@ -52,42 +48,29 @@ prompt:
     # Answer:
     <think>
 
-model:
-  torch_dtype: bfloat16
-  attn_implementation: sdpa
+generation:
+  tensor_parallel_size: 1
+  dtype: bfloat16
+  gpu_memory_utilization: 0.85
+  max_model_len: 2048
   trust_remote_code: true
-  device_map: null
-  gradient_checkpointing: true
 
-training:
-  num_train_epochs: 2
-  train_batch_size: 8
-  gradient_accumulation_steps: 4
-  learning_rate: 5.0e-6
-  weight_decay: 0.01
-  betas:
-    - 0.9
-    - 0.95
-  eps: 1.0e-8
-  max_grad_norm: 1.0
-  warmup_ratio: 0.05
-  lr_scheduler_type: cosine
-  num_workers: 2
-  pin_memory: true
+sampling:
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 1024
+  stop:
+    - "</answer>"
+  include_stop_str_in_output: true
+  seed: 42
+
+grading:
+  name: r1_zero_reward_fn
+  fast: false
+  normalize_tag_whitespace: true
+
+logging:
+  save_prompt: true
+  save_raw_response: true
+  save_solution: false
   log_every: 10
-  save_final_model: true
-
-wandb:
-  enabled: true
-  env_file: .env
-  run_name: sft
-  tags:
-    - sft
-    - math
-    - qwen2.5
-  log_examples_every: 100
-
-plots:
-  enabled: true
-  dpi: 300
-  style: seaborn-v0_8-whitegrid

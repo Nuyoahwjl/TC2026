@@ -402,7 +402,6 @@ def train_sft(cfg: Dict[str, Any], config_path: str):
                     "entropy": running["entropy"] / denom,
                     "response_tokens": running["response_tokens"] / denom,
                     "grad_norm": float(grad_norm.detach().cpu()),
-                    "elapsed_seconds": time.time() - start_time,
                 }
                 history.append(record)
                 metrics_file.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -450,10 +449,6 @@ def train_sft(cfg: Dict[str, Any], config_path: str):
 
     if wandb_run is not None:
         wandb_run.summary.update(summary)
-        if (output_dir / "training_curves.png").exists():
-            import wandb
-
-            wandb_run.log({"train/training_curves": wandb.Image(str(output_dir / "training_curves.png"))})
         wandb_run.finish()
 
     logger.info("Saved final model: %s", final_model_dir)
