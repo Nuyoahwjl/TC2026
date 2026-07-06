@@ -2,6 +2,7 @@ from pathlib import Path
 
 from datasets import (
     Dataset,
+    Image,
     load_dataset,
     load_from_disk,
     get_dataset_config_names,
@@ -152,6 +153,7 @@ def build_filtered_scienceqa_split(split_name: str) -> Dataset:
     # Streaming avoids materializing and saving the original image-heavy dataset
     # under data/. Only filtered text-only rows are written to disk below.
     stream = load_dataset("derek-thomas/ScienceQA", split=split_name, streaming=True)
+    stream = stream.cast_column("image", Image(decode=False))
     for source_index, item in enumerate(stream):
         if not is_usable_scienceqa_item(item):
             skipped += 1
