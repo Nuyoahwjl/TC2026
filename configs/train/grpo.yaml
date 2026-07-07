@@ -1,0 +1,117 @@
+task:
+  name: math_grpo
+  stage: grpo
+  seed: 42
+
+paths:
+  model_path: outputs/train/dpo/model
+  dataset_path: data/math
+  output_dir: outputs/train/grpo
+  final_model_dir: outputs/train/grpo/model
+
+dataset:
+  split: train
+  limit: null
+  start_index: 0
+  question_field: problem
+  solution_field: solution
+  metadata_fields:
+    - level
+    - type
+  max_length: 2048
+  add_eos_token: true
+
+prompt:
+  system_template: |
+    # Instruction
+    You are a helpful, respectful, and honest assistant.
+    Below is a math problem from the MATH dataset.
+    Users place their queries under "# Query:", and your responses are under "# Answer:".
+
+    You should solve the math problem step by step.
+    Your response must strictly follow this format:
+
+    <think>
+    reasoning process here
+    </think> <answer>
+    final answer here
+    </answer>
+
+    Important:
+    - Put only the final result inside <answer>...</answer>.
+    - Do not include words or explanations inside <answer>...</answer>.
+    - Do not use \boxed{} inside <answer>...</answer>.
+    - If the answer is a number, fraction, expression, tuple, or interval, write only that object.
+
+  user_template: |
+    # Query:
+    {question}
+
+    # Answer:
+    <think>
+
+sampling:
+  temperature: 1.0
+  top_p: 1.0
+  max_tokens: 1024
+  min_tokens: 4
+  n: 8
+  stop:
+    - "</answer>"
+  include_stop_str_in_output: true
+  seed: 42
+
+grading:
+  name: r1_zero_reward_fn
+  fast: false
+  normalize_tag_whitespace: true
+
+grpo:
+  n_grpo_steps: 200
+  rollout_batch_size: 32
+  group_size: 8
+  generation_batch_size: 8
+  clip_eps: 0.2
+  advantage_eps: 1.0e-6
+  normalize_advantage: false
+  epochs_per_rollout_batch: 2
+
+model:
+  torch_dtype: bfloat16
+  attn_implementation: sdpa
+  trust_remote_code: true
+  device_map: null
+  gradient_checkpointing: true
+
+training:
+  train_batch_size: 8
+  gradient_accumulation_steps: 4
+  learning_rate: 1.0e-5
+  weight_decay: 0.0
+  betas:
+    - 0.9
+    - 0.95
+  eps: 1.0e-8
+  max_grad_norm: 1.0
+  warmup_ratio: 0.03
+  lr_scheduler_type: cosine
+  num_workers: 2
+  pin_memory: true
+  log_every: 1
+  save_final_model: true
+
+wandb:
+  enabled: true
+  env_file: .env
+  run_name: grpo
+  tags:
+    - grpo
+    - rlvr
+    - math
+    - qwen2.5
+  log_examples_every: 100
+
+plots:
+  enabled: true
+  dpi: 300
+  style: seaborn-v0_8-whitegrid
