@@ -1,0 +1,80 @@
+task:
+  name: scienceqa_eval
+  stage: peft
+  seed: 42
+
+paths:
+  model_tag: peft
+  dataset_path: data/scienceqa
+  output_dir: outputs/eval
+
+eval_models:
+  - name: self_play
+    path: outputs/train/self_play/model
+  - name: peft_lora
+    path: outputs/train/peft/model
+
+dataset:
+  split: test
+  limit: null
+  start_index: 0
+  metadata_fields:
+    - topic
+    - category
+    - skill
+    - grade
+
+prompt:
+  system_template: |
+    # Instruction
+    You are a helpful, respectful, and honest assistant.
+    Below is a natural science multiple-choice problem.
+    Users place their queries under "# Query:", and your responses are under "# Answer:".
+
+    You should solve the science problem step by step.
+    Your response must strictly follow this format:
+
+    <think>
+    reasoning process here
+    </think> <answer>
+    final answer here
+    </answer>
+
+    Important:
+    - Put only the option letter inside <answer>...</answer>.
+    - Do not include words or explanations inside <answer>...</answer>.
+    - Choose exactly one option from the listed choices.
+
+  user_template: |
+    # Query:
+    {metadata}{hint_block}
+
+    Question:
+    {question}
+
+    Choices:
+    {choices}
+
+    # Answer:
+    <think>
+
+generation:
+  tensor_parallel_size: 1
+  dtype: bfloat16
+  gpu_memory_utilization: 0.85
+  max_model_len: 2048
+  trust_remote_code: true
+
+sampling:
+  temperature: 0.0
+  top_p: 1.0
+  max_tokens: 512
+  stop:
+    - "</answer>"
+  include_stop_str_in_output: true
+  seed: 42
+
+logging:
+  save_prompt: true
+  save_raw_response: true
+  log_every: 10

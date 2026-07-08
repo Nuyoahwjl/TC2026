@@ -1,0 +1,108 @@
+task:
+  name: scienceqa_peft_lora
+  stage: peft
+  seed: 42
+
+paths:
+  model_path: outputs/train/self_play/model
+  dataset_path: data/scienceqa
+  output_dir: outputs/train/peft
+  adapter_dir: outputs/train/peft/adapter
+  final_model_dir: outputs/train/peft/model
+
+dataset:
+  split: train
+  limit: null
+  start_index: 0
+  max_length: 2048
+  add_eos_token: true
+  metadata_fields:
+    - topic
+    - category
+    - skill
+    - grade
+
+prompt:
+  system_template: |
+    # Instruction
+    You are a helpful, respectful, and honest assistant.
+    Below is a natural science multiple-choice problem.
+    Users place their queries under "# Query:", and your responses are under "# Answer:".
+
+    You should solve the science problem step by step.
+    Your response must strictly follow this format:
+
+    <think>
+    reasoning process here
+    </think> <answer>
+    final answer here
+    </answer>
+
+    Important:
+    - Put only the option letter inside <answer>...</answer>.
+    - Do not include words or explanations inside <answer>...</answer>.
+    - Choose exactly one option from the listed choices.
+
+  user_template: |
+    # Query:
+    {metadata}{hint_block}
+
+    Question:
+    {question}
+
+    Choices:
+    {choices}
+
+    # Answer:
+    <think>
+
+lora:
+  target_modules:
+    - gate_proj
+    - up_proj
+    - down_proj
+  rank: 8
+  alpha: 16
+  dropout: 0.05
+  merge_and_save: true
+
+model:
+  torch_dtype: bfloat16
+  attn_implementation: sdpa
+  trust_remote_code: true
+  device_map: null
+  gradient_checkpointing: true
+
+training:
+  num_train_epochs: 2
+  train_batch_size: 8
+  gradient_accumulation_steps: 4
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  betas:
+    - 0.9
+    - 0.95
+  eps: 1.0e-8
+  max_grad_norm: 1.0
+  warmup_ratio: 0.05
+  lr_scheduler_type: cosine
+  num_workers: 2
+  pin_memory: true
+  log_every: 10
+  save_final_model: true
+
+wandb:
+  enabled: false
+  env_file: .env
+  run_name: peft_scienceqa
+  tags:
+    - peft
+    - lora
+    - scienceqa
+    - natural-science
+    - qwen2.5
+
+plots:
+  enabled: true
+  dpi: 300
+  style: seaborn-v0_8-whitegrid
