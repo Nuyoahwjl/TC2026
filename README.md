@@ -23,4 +23,4 @@ The experiments use [MATH](https://huggingface.co/datasets/EleutherAI/hendrycks_
 
 Training and evaluation were run on A800 PCIe and RTX PRO 6000 Blackwell GPUs.
 
-Linux shell helpers for launching the project jobs are in `shell/`.
+For models and results in the `outputs/` directory, please contact me at chia.le@foxmail.com.
