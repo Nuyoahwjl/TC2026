@@ -22,3 +22,5 @@ python scripts/download.py
 The experiments use [MATH](https://huggingface.co/datasets/EleutherAI/hendrycks_math) for math tasks and a filtered subset of [ScienceQA](https://huggingface.co/datasets/derek-thomas/ScienceQA) for natural science PEFT / LoRA.
 
 Training and evaluation were run on A800 PCIe and RTX PRO 6000 Blackwell GPUs.
+
+Linux shell helpers for launching the project jobs are in `shell/`.
