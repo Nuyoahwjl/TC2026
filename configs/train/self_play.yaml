@@ -1,0 +1,208 @@
+task:
+  name: math_self_play
+  stage: self_play
+  seed: 42
+
+paths:
+  model_path: outputs/train/grpo/model
+  dataset_path: data/math
+  output_dir: outputs/train/self_play
+  final_model_dir: outputs/train/self_play/model
+
+dataset:
+  split: train
+  limit: null
+  start_index: 0
+  question_field: problem
+  solution_field: solution
+  metadata_fields:
+    - level
+    - type
+  max_length: 2048
+  add_eos_token: true
+
+prompt:
+  system_template: |
+    # Instruction
+    You are a helpful, respectful, and honest assistant.
+    Below is a math problem.
+    Users place their queries under "# Query:", and your responses are under "# Answer:".
+
+    You should solve the math problem step by step.
+    Your response must strictly follow this format:
+
+    <think>
+    reasoning process here
+    </think> <answer>
+    final answer here
+    </answer>
+
+    Important:
+    - Put only the final result inside <answer>...</answer>.
+    - Do not include words or explanations inside <answer>...</answer>.
+    - Do not use \boxed{} inside <answer>...</answer>.
+    - If the answer is a number, fraction, expression, tuple, or interval, write only that object.
+
+  user_template: |
+    # Query:
+    {question}
+
+    # Answer:
+    <think>
+
+problem_generation:
+  unseeded_template: |
+    You are a math problem creator. Generate one original math problem that can be solved with arithmetic, algebra, number theory, geometry, or counting.
+
+    Requirements:
+    - The problem must have one clear final numerical or symbolic answer.
+    - Do not include the solution steps.
+    - Do not copy a known problem verbatim.
+    - Keep the final answer short and machine-checkable.
+
+    Output in the following format exactly:
+    Problem: [problem statement]
+    Answer: [final answer only]
+
+    Generate one problem now:
+
+  seed_template: |
+    Here is a seed math problem.
+    Topic: {seed_type}
+    Difficulty: {seed_level}
+    Problem: {seed_problem}
+    Answer: {seed_answer}
+
+    Create a new, different math problem with a similar topic and difficulty.
+
+    Requirements:
+    - The new problem must have one clear final numerical or symbolic answer.
+    - Do not include the solution steps.
+    - Do not copy names, constants, or wording from the seed problem.
+    - Keep the final answer short and machine-checkable.
+
+    Output in the following format exactly:
+    Problem: [new problem statement]
+    Answer: [final answer only]
+
+    Generate one problem now:
+
+problem_sampling:
+  temperature: 0.8
+  top_p: 0.95
+  max_tokens: 512
+  min_tokens: 16
+  stop: []
+  include_stop_str_in_output: false
+  seed: 42
+
+sampling:
+  temperature: 0.8
+  top_p: 0.95
+  max_tokens: 1024
+  min_tokens: 4
+  stop:
+    - "</answer>"
+  include_stop_str_in_output: true
+  seed: 42
+
+grading:
+  name: r1_zero_reward_fn
+  fast: false
+  normalize_tag_whitespace: true
+
+self_play:
+  n_steps: 120
+  n_problems_per_step: 32
+  max_generation_attempt_multiplier: 4
+  load_seed_examples: true
+  use_seed_problems: true
+  seed_levels:
+    - Level 1
+    - Level 2
+  problem_temperature: 0.8
+  problem_top_p: 0.95
+  problem_generation_batch_size: 8
+  curriculum:
+    - until_step: 40
+      use_seed_problems: true
+      seed_levels:
+        - Level 1
+        - Level 2
+      problem_temperature: 0.8
+    - until_step: 90
+      use_seed_problems: true
+      seed_levels:
+        - Level 1
+        - Level 2
+        - Level 3
+        - Level 4
+        - Level 5
+      problem_temperature: 0.9
+    - until_step: null
+      use_seed_problems: false
+      seed_levels: null
+      problem_temperature: 1.0
+  quality_filter:
+    min_problem_chars: 24
+    max_problem_chars: 900
+    min_answer_chars: 1
+    max_answer_chars: 96
+    max_answer_words: 12
+    answer_banned_substrings:
+      - because
+      - therefore
+      - so the answer
+      - solution
+      - problem
+      - answer
+      - we get
+      - equals
+
+self_play_sft:
+  samples_per_problem: 2
+  max_accepted_per_problem: 1
+  reward_threshold: 1.0
+  epochs_per_step: 1
+  generation_batch_size: 8
+
+model:
+  torch_dtype: bfloat16
+  attn_implementation: sdpa
+  trust_remote_code: true
+  device_map: null
+  gradient_checkpointing: true
+
+training:
+  train_batch_size: 8
+  gradient_accumulation_steps: 4
+  learning_rate: 5.0e-6
+  weight_decay: 0.01
+  betas:
+    - 0.9
+    - 0.95
+  eps: 1.0e-8
+  max_grad_norm: 1.0
+  warmup_ratio: 0.05
+  lr_scheduler_type: cosine
+  num_workers: 2
+  pin_memory: true
+  log_every: 1
+  save_final_model: true
+
+wandb:
+  enabled: false
+  env_file: .env
+  run_name: self_play
+  tags:
+    - self-play
+    - sft
+    - expert-iteration
+    - math
+    - qwen2.5
+  log_examples_every: 100
+
+plots:
+  enabled: true
+  dpi: 300
+  style: seaborn-v0_8-whitegrid
