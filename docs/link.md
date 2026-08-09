@@ -1,0 +1,9 @@
+| directory               | link                                 |
+| ----------------------- | ------------------------------------ |
+| outputs/eval            | https://www.alipan.com/s/TXQqqy1EiHY |
+| outputs/train/sft       | https://www.alipan.com/s/v2xZA57awCc |
+| outputs/train/rsft      | https://www.alipan.com/s/gPrmgavKK4a |
+| outputs/train/dpo       | https://www.alipan.com/s/MdNWDWGp6Bg |
+| outputs/train/grpo      | https://www.alipan.com/s/YSRBCsJWL5J |
+| outputs/train/self_play | https://www.alipan.com/s/1HLq3iYjNaN |
+| outputs/train/peft      | https://www.alipan.com/s/RZkVYJSmawq |
