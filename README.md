@@ -1,6 +1,6 @@
 # TC2026
 
-This repository contains my implementation for the [Technical Challenge 2026](./docs/Technical Challenge 2026.pdf) post-training task.
+This repository contains my implementation for the [Technical Challenge 2026](./docs/Technical%20Challenge%202026.pdf) post-training task.
 
 The project focuses on building a simple post-training pipeline for `Qwen2.5-Math-1.5B`, including:
 
